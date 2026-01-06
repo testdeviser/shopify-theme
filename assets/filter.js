@@ -13,13 +13,13 @@ document.getElementById('SortSelect')?.addEventListener('change', function() {
     const formData = new FormData(filtersForm);
     [...formData.entries()].forEach(([key, value]) => url.searchParams.set(key, value));
   }
-
+console(url);
   // Add sort_by
   url.searchParams.set('sort_by', sortValue);
 
   // Update URL
   history.pushState({}, '', url);
-console(`${url.pathname}${url.search}&section_id=${sectionId}`);
+
   // Fetch updated section
   fetch(`${url.pathname}${url.search}&section_id=${sectionId}`)
     .then(res => res.text())
