@@ -1,19 +1,18 @@
 document.getElementById('SortSelect')?.addEventListener('change', function() {
   const sortValue = this.value;
-  console(sortValue);
   const section = document.getElementById('CollectionSection');
   if (!section) return;
 
   const sectionId = section.dataset.sectionId;
   const url = new URL(window.location.href);
-  console(url);
+
   // Keep existing filter params
   const filtersForm = document.getElementById('FiltersForm');
   if (filtersForm) {
     const formData = new FormData(filtersForm);
     [...formData.entries()].forEach(([key, value]) => url.searchParams.set(key, value));
   }
-console(url);
+
   // Add sort_by
   url.searchParams.set('sort_by', sortValue);
 
