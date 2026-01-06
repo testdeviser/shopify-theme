@@ -50,9 +50,23 @@
           {% endcase %}
         </fieldset>
       {% endfor %}
+        <!-- Sort select -->
+<select id="SortSelect" name="sort_by">
+  {% assign current_sort = request.params.sort_by | default: 'title-ascending' %}
+  <option value="title-ascending" {% if current_sort == 'title-ascending' %}selected{% endif %}>A → Z</option>
+  <option value="title-descending" {% if current_sort == 'title-descending' %}selected{% endif %}>Z → A</option>
+  <option value="price-ascending" {% if current_sort == 'price-ascending' %}selected{% endif %}>Price: Low → High</option>
+  <option value="price-descending" {% if current_sort == 'price-descending' %}selected{% endif %}>Price: High → Low</option>
+  <option value="created-descending" {% if current_sort == 'created-descending' %}selected{% endif %}>Newest First</option>
+  <option value="created-ascending" {% if current_sort == 'created-ascending' %}selected{% endif %}>Oldest First</option>
+</select>
     </form>
+<form id="AjaxSearchForm" class="ajax-search" action="/search" method="get" role="search" autocomplete="off">
+  <input type="search" id="AjaxSearchInput" name="q" placeholder="Search products..." aria-label="Search products">
+  <div id="SearchResults" class="ajax-search__results"></div>
+</form>
   {% endif %}
-
+ 
   <div class="collection-products" id="ProductGridContainer">
     {% paginate collection.products by 20 %}
       {% for product in collection.products %}

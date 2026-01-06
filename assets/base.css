@@ -17,3 +17,37 @@
   position: absolute;
   left: -9999px;
 }
+.ajax-search {
+  position: relative;
+}
+
+.ajax-search__results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #ddd;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.ajax-search__results a {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  text-decoration: none;
+  color: #333;
+  border-bottom: 1px solid #eee;
+}
+
+.ajax-search__results a img {
+  margin-right: 10px;
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+}
+
+
+
