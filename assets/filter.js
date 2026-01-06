@@ -1,11 +1,12 @@
 document.getElementById('SortSelect')?.addEventListener('change', function() {
   const sortValue = this.value;
+  console(sortValue);
   const section = document.getElementById('CollectionSection');
   if (!section) return;
 
   const sectionId = section.dataset.sectionId;
   const url = new URL(window.location.href);
-
+  console(url);
   // Keep existing filter params
   const filtersForm = document.getElementById('FiltersForm');
   if (filtersForm) {
@@ -18,7 +19,7 @@ document.getElementById('SortSelect')?.addEventListener('change', function() {
 
   // Update URL
   history.pushState({}, '', url);
-
+console(`${url.pathname}${url.search}&section_id=${sectionId}`);
   // Fetch updated section
   fetch(`${url.pathname}${url.search}&section_id=${sectionId}`)
     .then(res => res.text())
