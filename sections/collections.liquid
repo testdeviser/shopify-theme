@@ -6,46 +6,6 @@
 {% endcomment %}
 
 <h1>{{ 'collections.title' | t }}</h1>
-{% if collection.filters.size > 0 %}
-  <form class="collection-filters">
-    {% for filter in collection.filters %}
-      <details class="filter">
-        <summary>{{ filter.label }}</summary>
-
-        {% case filter.type %}
-          {% when 'list' %}
-            {% for value in filter.values %}
-              <label>
-                <input
-                  type="checkbox"
-                  name="{{ value.param_name }}"
-                  value="{{ value.value }}"
-                  {% if value.active %}checked{% endif %}
-                >
-                {{ value.label }} ({{ value.count }})
-              </label>
-            {% endfor %}
-
-          {% when 'price_range' %}
-            <input
-              type="number"
-              name="{{ filter.min_value.param_name }}"
-              value="{{ filter.min_value.value }}"
-              placeholder="Min"
-            >
-            <input
-              type="number"
-              name="{{ filter.max_value.param_name }}"
-              value="{{ filter.max_value.value }}"
-              placeholder="Max"
-            >
-        {% endcase %}
-      </details>
-    {% endfor %}
-
-    <button type="submit">Apply</button>
-  </form>
-{% endif %}
 
 <div
   class="collections {{ section.settings.grid_item_width }}"
