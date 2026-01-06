@@ -10,6 +10,8 @@
 <div
   class="collections {{ section.settings.grid_item_width }}"
   style="--grid-gap: {{ section.settings.grid_gap }}px"
+  id="CollectionSection"
+  data-section-id="{{ section.id }}"
 >
   {% for collection in collections %}
     <a class="collection-card" href="{{ collection.url }}">

@@ -23,6 +23,8 @@
     {% # Social, title, etc. %}
     {% render 'meta-tags' %}
 
+  {{ 'base.css' | asset_url | stylesheet_tag }}
+  {{ 'global.js' | asset_url | script_tag }}
     {{ content_for_header }}
   </head>
 

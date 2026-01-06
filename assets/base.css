@@ -1,0 +1,19 @@
+.collection-filters {
+  border: 1px solid #ddd;
+  padding: 1rem;
+  margin-bottom: 2rem;
+}
+
+.collection-filters details {
+  margin-bottom: 1rem;
+}
+
+.collection-filters label {
+  display: block;
+  cursor: pointer;
+}
+
+.collection-filters button {
+  position: absolute;
+  left: -9999px;
+}

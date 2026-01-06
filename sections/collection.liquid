@@ -4,32 +4,79 @@
 
   https://shopify.dev/docs/storefronts/themes/architecture/templates/collection
 {% endcomment %}
+<div
+  id="CollectionSection"
+  data-section-id="{{ section.id }}"
+>
+  <h1>{{ collection.title }}</h1>
 
-<h1>{{ collection.title }}</h1>
+  {% if collection.filters.size > 0 %}
+    <form class="collection-filters">
+      {% for filter in collection.filters %}
+        <fieldset>
+          <legend>{{ filter.label }}</legend>
 
-<div class="collection-products">
-  {% paginate collection.products by 20 %}
-    {% for product in collection.products %}
-      <div class="collection-product">
-        {% if product.featured_image %}
-          {% render 'image',
-            class: 'collection-product__image',
-            image: product.featured_image,
-            url: product.url,
-            width: 400,
-            height: 400,
-            crop: 'center'
-          %}
-        {% endif %}
-        <div class="collection-product__content">
-          <p>{{ product.title | escape | link_to: product.url }}</p>
-          <p>{{ product.price | money }}</p>
+          {% case filter.type %}
+            {% when 'list' %}
+              {% for value in filter.values %}
+                <label>
+                  <input
+                    type="checkbox"
+                    name="{{ value.param_name }}"
+                    value="{{ value.value }}"
+                    {% if value.active %}checked{% endif %}
+                  >
+                  {{ value.label }} ({{ value.count }})
+                </label><br>
+              {% endfor %}
+
+            {% when 'price_range' %}
+              <label>
+                Min:
+                <input
+                  type="number"
+                  name="{{ filter.min_value.param_name }}"
+                  value="{{ filter.min_value.value }}"
+                >
+              </label>
+              <label>
+                Max:
+                <input
+                  type="number"
+                  name="{{ filter.max_value.param_name }}"
+                  value="{{ filter.max_value.value }}"
+                >
+              </label>
+          {% endcase %}
+        </fieldset>
+      {% endfor %}
+    </form>
+  {% endif %}
+
+  <div class="collection-products" id="ProductGridContainer">
+    {% paginate collection.products by 20 %}
+      {% for product in collection.products %}
+        <div class="collection-product">
+          {% if product.featured_image %}
+            {% render 'image',
+              class: 'collection-product__image',
+              image: product.featured_image,
+              url: product.url,
+              width: 400,
+              height: 400,
+              crop: 'center'
+            %}
+          {% endif %}
+          <div class="collection-product__content">
+            <p>{{ product.title | escape | link_to: product.url }}</p>
+            <p>{{ product.price | money }}</p>
+          </div>
         </div>
-      </div>
-    {% endfor %}
+      {% endfor %}
 
-    {{ paginate | default_pagination }}
-  {% endpaginate %}
+      {{ paginate | default_pagination }}
+    {% endpaginate %}
+  </div>
 </div>
 
 {% stylesheet %}
