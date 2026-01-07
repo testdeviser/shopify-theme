@@ -29,7 +29,16 @@
   },
   "collections": {
     "title": "Collections"
-  },
+  }, 
+  "collection": {
+    "title": "Collections",
+    "title_ascending": "A → Z",
+    "title_descending": "Z → A",
+    "price_ascending": "Price: Low → High",
+    "price_descending": "Price: High → Low",
+    "created_descending": "Newest First",
+    "created_ascending": "Oldest First"
+  } ,
   "gift_card": {
     "add_to_apple_wallet": "Add to Apple Wallet",
     "card": "Gift card",

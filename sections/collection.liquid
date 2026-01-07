@@ -69,7 +69,7 @@
               hidden text inputs used to submit the filter values.
           {%- endcomment -%}
 
-{% assign min_value = filter.min_value.value | default: filter.range_min %}
+{% comment %} {% assign min_value = filter.min_value.value | default: filter.range_min %} {% endcomment %}
 {% assign max_value = filter.max_value.value | default: filter.range_max %}
 {% assign all_prices = collection.products | map: 'price' %}
 {% assign max_price_cents = all_prices | sort | last %}
@@ -77,7 +77,7 @@
 
 
 <div id="RangeSlider" class="range-slider" data-max-price="{{ max_price }}">
-  <div>
+  <div style="background-color: lightgray; border-radius: 50px;">
     <div class="range-slider-val-left"></div>
     <div class="range-slider-val-right"></div>
     <div class="range-slider-val-range"></div>
@@ -109,7 +109,7 @@
     {%- endcomment -%}
     <input type="text"
            name="{{ filter.min_value.param_name }}"
-           value="{{ min_value }}"
+           value="0"
            class="price-min-input">
 
     <input type="text" id="max-price-input"
@@ -125,12 +125,12 @@
         <!-- Sort select -->
     <select id="SortSelect" name="sort_by">
       {% assign current_sort = request.params.sort_by | default: 'title-ascending' %}
-      <option value="title-ascending" {% if current_sort == 'title-ascending' %}selected{% endif %}>A → Z</option>
-      <option value="title-descending" {% if current_sort == 'title-descending' %}selected{% endif %}>Z → A</option>
-      <option value="price-ascending" {% if current_sort == 'price-ascending' %}selected{% endif %}>Price: Low → High</option>
-      <option value="price-descending" {% if current_sort == 'price-descending' %}selected{% endif %}>Price: High → Low</option>
-      <option value="created-descending" {% if current_sort == 'created-descending' %}selected{% endif %}>Newest First</option>
-      <option value="created-ascending" {% if current_sort == 'created-ascending' %}selected{% endif %}>Oldest First</option>
+      <option value="title-ascending" {% if current_sort == 'title-ascending' %}selected{% endif %}>{{ 'collection.title_ascending' | t }}</option>
+      <option value="title-descending" {% if current_sort == 'title-descending' %}selected{% endif %}>{{ 'collection.title_descending' | t }}</option>
+      <option value="price-ascending" {% if current_sort == 'price-ascending' %}selected{% endif %}>{{ 'collection.price_ascending' | t }}</option>
+      <option value="price-descending" {% if current_sort == 'price-descending' %}selected{% endif %}>{{ 'collection.price_descending' | t }}</option>
+      <option value="created-descending" {% if current_sort == 'created-descending' %}selected{% endif %}>{{ 'collection.created_descending' | t }}</option>
+      <option value="created-ascending" {% if current_sort == 'created-ascending' %}selected{% endif %}>{{ 'collection.created_ascending' | t }}</option>
     </select>
     </form>
 <form id="AjaxSearchForm" class="ajax-search" action="/search" method="get" role="search" autocomplete="off">
