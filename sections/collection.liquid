@@ -30,23 +30,45 @@
                 </label><br>
               {% endfor %}
 
-            {% when 'price_range' %}
-              <label>
-                Min:
-                <input
-                  type="number"
-                  name="{{ filter.min_value.param_name }}"
-                  value="{{ filter.min_value.value }}"
-                >
-              </label>
-              <label>
-                Max:
-                <input
-                  type="number"
-                  name="{{ filter.max_value.param_name }}"
-                  value="{{ filter.max_value.value }}"
-                >
-              </label>
+         {% when 'price_range' %}
+          
+  {% assign min_value = filter.min_value.value | default: filter.range_min %}
+  {% assign max_value = filter.max_value.value | default: filter.range_max %}
+
+  <div class="price-range" 
+       data-min="{{ filter.range_min }}"
+       data-max="{{ filter.range_max }}">
+
+    <!-- Hidden inputs Shopify needs -->
+    <input type="hidden"
+           name="{{ filter.min_value.param_name }}"
+           value="{{ min_value }}"
+           class="price-min-input">
+
+    <input type="hidden"
+           name="{{ filter.max_value.param_name }}"
+           value="{{ max_value }}"
+           class="price-max-input">
+
+    <!-- Range sliders -->
+    <input type="range"
+           min="{{ filter.range_min }}"
+           max="{{ 50 }}"
+           value="{{ min_value }}"
+           class="price-range-min">
+
+    <input type="range"
+           min="{{ filter.range_min }}"
+           max="{{ 50 }}"
+           value="{{ max_value }}"
+           class="price-range-max">
+
+    <div class="price-range-values">
+      <span class="price-min-label">{{ min_value | money }}</span>
+      –
+      <span class="price-max-label">{{ max_value | money }}</span>
+    </div>
+  </div>
           {% endcase %}
         </fieldset>
       {% endfor %}
