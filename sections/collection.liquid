@@ -4,6 +4,7 @@
 
   https://shopify.dev/docs/storefronts/themes/architecture/templates/collection
 {% endcomment %}
+
 <div
   id="CollectionSection"
   data-section-id="{{ section.id }}"
@@ -35,40 +36,45 @@
   {% assign min_value = filter.min_value.value | default: filter.range_min %}
   {% assign max_value = filter.max_value.value | default: filter.range_max %}
 
-  <div class="price-range" 
-       data-min="{{ filter.range_min }}"
-       data-max="{{ filter.range_max }}">
 
-    <!-- Hidden inputs Shopify needs -->
-    <input type="hidden"
-           name="{{ filter.min_value.param_name }}"
-           value="{{ min_value }}"
-           class="price-min-input">
 
-    <input type="hidden"
-           name="{{ filter.max_value.param_name }}"
-           value="{{ max_value }}"
-           class="price-max-input">
+<div id="RangeSlider" class="range-slider">
+	<div>
+		<div class="range-slider-val-left"></div>
+		<div class="range-slider-val-right"></div>
+		<div class="range-slider-val-range"></div>
 
-    <!-- Range sliders -->
-    <input type="range"
-           min="{{ filter.range_min }}"
-           max="{{ 50 }}"
-           value="{{ min_value }}"
-           class="price-range-min">
+		<span class="range-slider-handle range-slider-handle-left"></span>
+		<span class="range-slider-handle range-slider-handle-right"></span>
 
-    <input type="range"
-           min="{{ filter.range_min }}"
-           max="{{ 50 }}"
-           value="{{ max_value }}"
-           class="price-range-max">
+		<div class="range-slider-tooltip range-slider-tooltip-left">
+			<span class="range-slider-tooltip-text"></span>
+		</div>
 
-    <div class="price-range-values">
-      <span class="price-min-label">{{ min_value | money }}</span>
-      –
-      <span class="price-max-label">{{ max_value | money }}</span>
-    </div>
-  </div>
+		<div class="range-slider-tooltip range-slider-tooltip-right">
+			<span class="range-slider-tooltip-text"></span>
+		</div>
+	</div>
+
+	<input type="range" class="range-slider-input-left price-range-min" tabindex="0" max="100" min="0" step="1">
+	<input type="range" class="range-slider-input-right price-range-max" tabindex="0" max="100" min="0" step="1">
+ <div class="price-range"
+     data-min="{{ filter.range_min }}"
+     data-max="{{ filter.range_max }}">
+
+  <input type="hidden"
+         name="{{ filter.min_value.param_name }}"
+         value="{{ min_value }}"
+         class="price-min-input">
+
+  <input type="hidden"
+         name="{{ filter.max_value.param_name }}"
+         value="{{ max_value }}"
+         class="price-max-input">
+</div>
+
+</div>
+ 
           {% endcase %}
         </fieldset>
       {% endfor %}
