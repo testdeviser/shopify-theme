@@ -5,8 +5,12 @@
   https://shopify.dev/docs/storefronts/themes/architecture/templates/collection
 {% endcomment %}
 
-<h1>{{ 'collections.title' | t }}</h1>
 
+<h1>{{ 'collections.title' | t }}</h1>
+<form id="collectionSearchForm" class="collection-search" action="/search" method="get" role="search" autocomplete="off">
+  <input type="search" id="collectionSearchInput" name="q" placeholder="Search products..." aria-label="Search products">
+  <div id="collectionSearchResults" class="collection-search__results"></div>
+</form>
 <div
   class="collections {{ section.settings.grid_item_width }}"
   style="--grid-gap: {{ section.settings.grid_gap }}px"
