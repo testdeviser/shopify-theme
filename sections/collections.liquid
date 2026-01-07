@@ -1,12 +1,36 @@
 {% comment %}
-  This section is used in the list-collections template to render a list of
-  collections.
+  collections.liquid
 
+  Purpose:
+  - Renders a grid of collections used by the list-collections template.
+  - Provides an inline search box (client-side filtering) and renders each
+    collection card (image, title, truncated description).
+
+  Flow overview (runtime):
+  1. The search input (`#collectionSearchInput`) is purely client-side and
+     filters the already-rendered `.collection-card` elements.
+  2. The section container (`#CollectionSection`) holds the grid and exposes
+     `data-section-id` for use with AJAX requests (when running section-based
+     updates from the storefront).
+  3. The grid rendering is controlled by section settings (see bottom schema)
+     and the `render 'image'` snippet is used for responsive images.
+
+  Notes for developers:
+  - Keep translations using the `t` filter for merchant-facing strings.
+  - Use the `render 'image'` snippet to ensure consistent image sizing and
+    lazy-loading behavior across the theme.
+
+  Reference:
   https://shopify.dev/docs/storefronts/themes/architecture/templates/collection
 {% endcomment %}
 
 
 <h1>{{ 'collections.title' | t }}</h1>
+
+{% comment %} Client-side collection search
+   - Filters visible collection cards by their title text.
+   - This search does not perform a new server request; it's purely DOM-based.
+{% endcomment %}
 <form id="collectionSearchForm" class="collection-search" action="/search" method="get" role="search" autocomplete="off">
   <input type="search" id="collectionSearchInput" name="q" placeholder="Search products..." aria-label="Search products">
   <div id="collectionSearchResults" class="collection-search__results"></div>
@@ -18,6 +42,8 @@
   data-section-id="{{ section.id }}"
 >
   {% for collection in collections %}
+    {% comment %} Each `.collection-card` represents one collection in the
+        grid. The `render 'image'` snippet standardizes image output. {% endcomment %}
     <a class="collection-card" href="{{ collection.url }}">
       {% if collection.featured_image %}
         {% render 'image',
@@ -33,6 +59,7 @@
         <p>{{ collection.title }}</p>
 
         {% if collection.description %}
+          {%- comment -%} Limit description length for card layout {%- endcomment -%}
           <p>{{ collection.description | strip_html | truncatewords: 15 }}</p>
         {% endif %}
       </div>

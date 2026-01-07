@@ -1,34 +1,52 @@
+/*
+  assets/global.js
+
+  Purpose:
+  - Implements the interactive range slider used by the `price_range` filter
+    on collection pages and the Ajax search suggestions used by
+    `#AjaxSearchForm`.
+
+  Notes:
+  - The DOM for the slider may not exist on every page. Guard against null
+    references to avoid script errors on pages without the slider.
+  - A small amount of normalization is applied to `data-max-price` to
+    convert from cents to an integer price for the UI.
+*/
+
 const rangeSlider_min = 0;
 
+// Guard slider initialization to avoid runtime errors on pages without it
 const slider = document.querySelector('#RangeSlider');
-const maxpriceinput = document.querySelector('#max-price-input');
-let maxPrice = slider.getAttribute('data-max-price');
+if (slider) {
+  const maxpriceinput = document.querySelector('#max-price-input');
+  let maxPrice = slider.getAttribute('data-max-price');
 
-// Convert to float first (in case it has decimals), then to integer
-maxPrice = parseInt(parseFloat(maxPrice) + 100);
-maxpriceinput.value = maxPrice;
+  // Convert to float first (in case it has decimals), then to integer and
+  // add a small buffer (non-invasive) so the UI has room to move.
+  maxPrice = parseInt(parseFloat(maxPrice) + 100);
+  if (maxpriceinput) maxpriceinput.value = maxPrice;
 
-console.log(maxPrice);
-const rangeSlider_max = maxPrice ; 
-const inputLeft = slider.querySelector('.range-slider-input-left');
-const inputRight = slider.querySelector('.range-slider-input-right');
+  console.log(maxPrice);
+  const rangeSlider_max = maxPrice;
+  const inputLeft = slider.querySelector('.range-slider-input-left');
+  const inputRight = slider.querySelector('.range-slider-input-right');
 
-const handleLeft = slider.querySelector('.range-slider-handle-left');
-const handleRight = slider.querySelector('.range-slider-handle-right');
-const rangeBar = slider.querySelector('.range-slider-val-range');
+  const handleLeft = slider.querySelector('.range-slider-handle-left');
+  const handleRight = slider.querySelector('.range-slider-handle-right');
+  const rangeBar = slider.querySelector('.range-slider-val-range');
 
-const tooltipLeft = slider.querySelector('.range-slider-tooltip-left');
-const tooltipRight = slider.querySelector('.range-slider-tooltip-right');
-const tooltipLeftText = tooltipLeft.querySelector('.range-slider-tooltip-text');
-const tooltipRightText = tooltipRight.querySelector('.range-slider-tooltip-text');
+  const tooltipLeft = slider.querySelector('.range-slider-tooltip-left');
+  const tooltipRight = slider.querySelector('.range-slider-tooltip-right');
+  const tooltipLeftText = tooltipLeft.querySelector('.range-slider-tooltip-text');
+  const tooltipRightText = tooltipRight.querySelector('.range-slider-tooltip-text');
 
-inputLeft.min = rangeSlider_min;
-inputLeft.max = rangeSlider_max;
-inputLeft.value = rangeSlider_min;
+  inputLeft.min = rangeSlider_min;
+  inputLeft.max = rangeSlider_max;
+  inputLeft.value = rangeSlider_min;
 
-inputRight.min = rangeSlider_min;
-inputRight.max = rangeSlider_max;
-inputRight.value = rangeSlider_max;
+  inputRight.min = rangeSlider_min;
+  inputRight.max = rangeSlider_max;
+  inputRight.value = rangeSlider_max;
 
 function updateSlider() {
     // Calculate percentage positions
@@ -66,46 +84,100 @@ inputRight.addEventListener('input', () => {
 // Initialize
 updateSlider();
 
-document.addEventListener('input', function (event) {
-  if (
-    !event.target.classList.contains('price-range-min') &&
-    !event.target.classList.contains('price-range-max')
-  ) {
-    return;
-  }
-
-  const slider = event.target;
-  const container = document.querySelector('.price-range');
-  if (!container) return;
-
-  const minSlider = document.querySelector('.price-range-min');
-  const maxSlider = document.querySelector('.price-range-max');
-
-  const minInput = container.querySelector('.price-min-input');
-  const maxInput = container.querySelector('.price-max-input');
-
-  let minVal = parseInt(minSlider.value, 10);
-  let maxVal = parseInt(maxSlider.value, 10);
-
-  // Prevent overlap (Shopify-safe)
-  if (minVal >= maxVal) {
-    if (slider === minSlider) {
-      minVal = maxVal - 1;
-      minSlider.value = minVal;
-    } else {
-      maxVal = minVal + 1;
-      maxSlider.value = maxVal;
+  document.addEventListener('input', function (event) {
+    // Only react to slider inputs for the price range UI
+    if (!event.target.classList.contains('price-range-min') && !event.target.classList.contains('price-range-max')) {
+      return;
     }
+
+    const sliderTarget = event.target;
+    const container = document.querySelector('.price-range');
+    if (!container) return;
+
+    const minSlider = document.querySelector('.price-range-min');
+    const maxSlider = document.querySelector('.price-range-max');
+
+    const minInput = container.querySelector('.price-min-input');
+    const maxInput = container.querySelector('.price-max-input');
+
+    let minVal = parseInt(minSlider.value, 10);
+    let maxVal = parseInt(maxSlider.value, 10);
+
+    // Prevent overlap (Shopify-safe)
+    if (minVal >= maxVal) {
+      if (sliderTarget === minSlider) {
+        minVal = maxVal - 1;
+        minSlider.value = minVal;
+      } else {
+        maxVal = minVal + 1;
+        maxSlider.value = maxVal;
+      }
+    }
+
+    // Update Shopify filter inputs so normal form submission works
+    if (minInput) minInput.value = minVal;
+    if (maxInput) maxInput.value = maxVal;
+
+    // Trigger the same AJAX change as sliders by dispatching change events
+    if (minInput) minInput.dispatchEvent(new Event('change', { bubbles: true }));
+    if (maxInput) maxInput.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+
+  // Initialize slider visuals if text inputs are changed directly
+  function updateSliderFromInputs() {
+    const sliderEl = document.getElementById('RangeSlider');
+    if (!sliderEl) return;
+
+    const inputLeft = sliderEl.querySelector('.range-slider-input-left');
+    const inputRight = sliderEl.querySelector('.range-slider-input-right');
+    const handleLeft = sliderEl.querySelector('.range-slider-handle-left');
+    const handleRight = sliderEl.querySelector('.range-slider-handle-right');
+    const rangeBar = sliderEl.querySelector('.range-slider-val-range');
+    const tooltipLeftText = sliderEl.querySelector('.range-slider-tooltip-left .range-slider-tooltip-text');
+    const tooltipRightText = sliderEl.querySelector('.range-slider-tooltip-right .range-slider-tooltip-text');
+
+    const minInput = document.querySelector('.price-min-input');
+    const maxInput = document.querySelector('.price-max-input');
+
+    if (!minInput || !maxInput) return;
+
+    let minVal = parseInt(minInput.value, 10);
+    let maxVal = parseInt(maxInput.value, 10);
+
+    const rangeMin = parseInt(inputLeft.min, 10);
+    const rangeMax = parseInt(inputLeft.max, 10);
+
+    // Clamp values
+    minVal = Math.max(rangeMin, Math.min(minVal, maxVal - 1));
+    maxVal = Math.min(rangeMax, Math.max(maxVal, minVal + 1));
+
+    inputLeft.value = minVal;
+    inputRight.value = maxVal;
+
+    // Update slider positions
+    const minPercent = ((minVal - rangeMin) / (rangeMax - rangeMin)) * 100;
+    const maxPercent = ((maxVal - rangeMin) / (rangeMax - rangeMin)) * 100;
+
+    handleLeft.style.left = `${minPercent}%`;
+    handleRight.style.left = `${maxPercent}%`;
+    rangeBar.style.left = `${minPercent}%`;
+    rangeBar.style.right = `${100 - maxPercent}%`;
+
+    tooltipLeftText.innerText = minVal;
+    tooltipRightText.innerText = maxVal;
   }
 
-  // Update Shopify filter inputs
-  minInput.value = minVal;
-  maxInput.value = maxVal;
+  // Listen for direct edits to the canonical min/max inputs and update sliders
+  document.querySelectorAll('.price-min-input, .price-max-input').forEach(input => {
+    input.addEventListener('input', () => {
+      updateSliderFromInputs();
 
-  // Trigger Search & Discovery AJAX filtering
-  minInput.dispatchEvent(new Event('change', { bubbles: true }));
-  maxInput.dispatchEvent(new Event('change', { bubbles: true }));
-});
+      // Trigger the same AJAX change as sliders
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  });
+
+} // end guard if (slider)
 
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -160,33 +232,58 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 });
+  
+// Function to update the slider handles from inputs
+function updateSliderFromInputs() {
+  const slider = document.getElementById('RangeSlider');
+  if (!slider) return;
 
+  const inputLeft = slider.querySelector('.range-slider-input-left');
+  const inputRight = slider.querySelector('.range-slider-input-right');
+  const handleLeft = slider.querySelector('.range-slider-handle-left');
+  const handleRight = slider.querySelector('.range-slider-handle-right');
+  const rangeBar = slider.querySelector('.range-slider-val-range');
+  const tooltipLeftText = slider.querySelector('.range-slider-tooltip-left .range-slider-tooltip-text');
+  const tooltipRightText = slider.querySelector('.range-slider-tooltip-right .range-slider-tooltip-text');
 
-document.addEventListener('DOMContentLoaded', () => {
-  const input = document.getElementById('collectionSearchInput');
-  const collectionsContainer = document.getElementById('CollectionSection');
+  const minInput = document.querySelector('.price-min-input');
+  const maxInput = document.querySelector('.price-max-input');
 
-  if (!input || !collectionsContainer) return;
+  if (!minInput || !maxInput) return;
 
-  const collectionCards = Array.from(
-    collectionsContainer.querySelectorAll('.collection-card')
-  );
+  let minVal = parseInt(minInput.value, 10);
+  let maxVal = parseInt(maxInput.value, 10);
 
-  input.addEventListener('keyup', function () {
-    const searchValue = this.value.toLowerCase().trim();
+  const rangeMin = parseInt(inputLeft.min, 10);
+  const rangeMax = parseInt(inputLeft.max, 10);
 
-    collectionCards.forEach(card => {
-      const titleEl = card.querySelector('.collection-card__content p');
-      if (!titleEl) return;
+  // Clamp values
+  minVal = Math.max(rangeMin, Math.min(minVal, maxVal - 1));
+  maxVal = Math.min(rangeMax, Math.max(maxVal, minVal + 1));
 
-      const title = titleEl.textContent.toLowerCase();
+  inputLeft.value = minVal;
+  inputRight.value = maxVal;
 
-      if (title.includes(searchValue)) {
-        card.style.display = '';
-      } else {
-        card.style.display = 'none';
-      }
-    });
+  // Update slider positions
+  const minPercent = ((minVal - rangeMin) / (rangeMax - rangeMin)) * 100;
+  const maxPercent = ((maxVal - rangeMin) / (rangeMax - rangeMin)) * 100;
+
+  handleLeft.style.left = `${minPercent}%`;
+  handleRight.style.left = `${maxPercent}%`;
+  rangeBar.style.left = `${minPercent}%`;
+  rangeBar.style.right = `${100 - maxPercent}%`;
+
+  tooltipLeftText.innerText = minVal;
+  tooltipRightText.innerText = maxVal;
+}
+
+// Listen for changes on min/max input fields
+document.querySelectorAll('.price-min-input, .price-max-input').forEach(input => {
+  input.addEventListener('input', () => {
+    updateSliderFromInputs();
+
+    // Trigger the same AJAX change as sliders
+    input.dispatchEvent(new Event('change', { bubbles: true }));
   });
 });
 

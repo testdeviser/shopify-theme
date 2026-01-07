@@ -1,7 +1,31 @@
 {% comment %}
-  This section is used in the collection template to render collection page
-  listing all products within a collection.
+  collection.liquid
 
+  Purpose:
+  - Renders the collection page: filters, sort UI, optional price range slider,
+   search within the collection (AJAX suggestions), and the product grid.
+
+  Flow overview (runtime):
+  1. If `collection.filters` exist, a filter form is shown. Filters may include
+    lists and a `price_range` type which renders a range slider + min/max
+    inputs.
+  2. The range slider UI is purely client-side but writes values into text
+    inputs (min/max) that are used as filter query parameters when the
+    form is submitted or when change events are dispatched.
+  3. Sorting is controlled by `#SortSelect`; when changed it updates the URL
+    `sort_by` param and can trigger a section refresh via AJAX.
+  4. The `#AjaxSearchForm` provides live suggestion lookups using
+    `/search/suggest.json` (see `assets/global.js`).
+  5. The product grid is wrapped in `#ProductGridContainer` and supports
+    server-side pagination via the `paginate` tag. AJAX fetches can swap out
+    the inner HTML of this container for a seamless experience.
+
+  Notes for developers:
+  - When performing section-based AJAX fetches, pass `section_id` to get the
+   rendered HTML fragment for this section only.
+  - Use `request.params` to read incoming query parameters like `sort_by`.
+
+  Reference:
   https://shopify.dev/docs/storefronts/themes/architecture/templates/collection
 {% endcomment %}
 
@@ -12,6 +36,10 @@
   <h1>{{ collection.title }}</h1>
 
   {% if collection.filters.size > 0 %}
+    {%- comment -%} Filters form
+        - Renders one fieldset per filter provided by Shopify.
+        - Supports `list` filters (checkbox groups) and `price_range` (custom UI).
+    {%- endcomment -%}
     <form class="collection-filters">
       {% for filter in collection.filters %}
         <fieldset>
@@ -32,66 +60,78 @@
               {% endfor %}
 
          {% when 'price_range' %}
-          
+          {%- comment -%}
+            Price range handling:
+            - Compute min/max defaults from filter values.
+            - Derive an approximate `max_price` from collection product prices
+              to seed the slider's `data-max-price` attribute.
+            - The HTML below includes both the visual range slider and the
+              hidden text inputs used to submit the filter values.
+          {%- endcomment -%}
+
 {% assign min_value = filter.min_value.value | default: filter.range_min %}
 {% assign max_value = filter.max_value.value | default: filter.range_max %}
 {% assign all_prices = collection.products | map: 'price' %}
 {% assign max_price_cents = all_prices | sort | last %}
- {% assign max_price = max_price_cents | divided_by: 100 %}
+{% assign max_price = max_price_cents | divided_by: 100 %}
 
 
 <div id="RangeSlider" class="range-slider" data-max-price="{{ max_price }}">
-	<div>
-		<div class="range-slider-val-left"></div>
-		<div class="range-slider-val-right"></div>
-		<div class="range-slider-val-range"></div>
+  <div>
+    <div class="range-slider-val-left"></div>
+    <div class="range-slider-val-right"></div>
+    <div class="range-slider-val-range"></div>
 
-		<span class="range-slider-handle range-slider-handle-left"></span>
-		<span class="range-slider-handle range-slider-handle-right"></span>
+    <span class="range-slider-handle range-slider-handle-left"></span>
+    <span class="range-slider-handle range-slider-handle-right"></span>
 
-		<div class="range-slider-tooltip range-slider-tooltip-left">
-			<span class="range-slider-tooltip-text"></span>
-		</div>
+    <div class="range-slider-tooltip range-slider-tooltip-left">
+      <span class="range-slider-tooltip-text"></span>
+    </div>
 
-		<div class="range-slider-tooltip range-slider-tooltip-right">
-			<span class="range-slider-tooltip-text"></span>
-		</div>
-	</div>
+    <div class="range-slider-tooltip range-slider-tooltip-right">
+      <span class="range-slider-tooltip-text"></span>
+    </div>
+  </div>
 
-	<input type="range" class="range-slider-input-left price-range-min" tabindex="0" max="100" min="0" step="1">
-	<input type="range" class="range-slider-input-right price-range-max" tabindex="0" max="100" min="0" step="1">
+  <input type="range" class="range-slider-input-left price-range-min" tabindex="0" max="100" min="0" step="1">
+  <input type="range" class="range-slider-input-right price-range-max" tabindex="0" max="100" min="0" step="1">
 
 
 </div>
- <div class="price-range"
+<div class="price-range"
      data-min="{{ filter.range_min }}"
      data-max="{{ filter.range_max }}">
-<div>
-  <input type="text"
-         name="{{ filter.min_value.param_name }}"
-         value="{{ min_value }}"
-         class="price-min-input">
+  <div>
+    {%- comment -%} The following text inputs are the canonical inputs used by
+        the theme when submitting filters to the backend. The slider only
+        mirrors values to these inputs so that normal form submission works.
+    {%- endcomment -%}
+    <input type="text"
+           name="{{ filter.min_value.param_name }}"
+           value="{{ min_value }}"
+           class="price-min-input">
 
-  <input type="text" id="max-price-input"
-         name="{{ filter.max_value.param_name }}"
-         value="{{ max_value }}"
-         class="price-max-input">
-         </div>
+    <input type="text" id="max-price-input"
+           name="{{ filter.max_value.param_name }}"
+           value="{{ max_value }}"
+           class="price-max-input">
+  </div>
 </div>
- 
+
           {% endcase %}
         </fieldset>
       {% endfor %}
         <!-- Sort select -->
-<select id="SortSelect" name="sort_by">
-  {% assign current_sort = request.params.sort_by | default: 'title-ascending' %}
-  <option value="title-ascending" {% if current_sort == 'title-ascending' %}selected{% endif %}>A → Z</option>
-  <option value="title-descending" {% if current_sort == 'title-descending' %}selected{% endif %}>Z → A</option>
-  <option value="price-ascending" {% if current_sort == 'price-ascending' %}selected{% endif %}>Price: Low → High</option>
-  <option value="price-descending" {% if current_sort == 'price-descending' %}selected{% endif %}>Price: High → Low</option>
-  <option value="created-descending" {% if current_sort == 'created-descending' %}selected{% endif %}>Newest First</option>
-  <option value="created-ascending" {% if current_sort == 'created-ascending' %}selected{% endif %}>Oldest First</option>
-</select>
+    <select id="SortSelect" name="sort_by">
+      {% assign current_sort = request.params.sort_by | default: 'title-ascending' %}
+      <option value="title-ascending" {% if current_sort == 'title-ascending' %}selected{% endif %}>A → Z</option>
+      <option value="title-descending" {% if current_sort == 'title-descending' %}selected{% endif %}>Z → A</option>
+      <option value="price-ascending" {% if current_sort == 'price-ascending' %}selected{% endif %}>Price: Low → High</option>
+      <option value="price-descending" {% if current_sort == 'price-descending' %}selected{% endif %}>Price: High → Low</option>
+      <option value="created-descending" {% if current_sort == 'created-descending' %}selected{% endif %}>Newest First</option>
+      <option value="created-ascending" {% if current_sort == 'created-ascending' %}selected{% endif %}>Oldest First</option>
+    </select>
     </form>
 <form id="AjaxSearchForm" class="ajax-search" action="/search" method="get" role="search" autocomplete="off">
   <input type="search" id="AjaxSearchInput" name="q" placeholder="Search products..." aria-label="Search products">
