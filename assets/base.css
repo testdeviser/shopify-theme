@@ -48,7 +48,11 @@
   height: 50px;
   object-fit: cover;
 }
-
+.price-range
+{
+  position: relative;
+  margin-top:50px;
+}
 
 
 :root {
@@ -69,6 +73,7 @@ body {
   align-items: center;
   width: 99%;
   height: 100%;
+  margin-top:25px;
 }
 
 .range-slider > div {

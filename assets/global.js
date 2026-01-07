@@ -1,50 +1,71 @@
-
- /** Default config */
 const rangeSlider_min = 0;
-const rangeSlider_max = 60;
 
-document.querySelector('#RangeSlider .range-slider-val-left').style.width = `${rangeSlider_min + (100 - rangeSlider_max)}%`;
-document.querySelector('#RangeSlider .range-slider-val-right').style.width = `${rangeSlider_min + (100 - rangeSlider_max)}%`;
- 
-document.querySelector('#RangeSlider .range-slider-val-range').style.left = `${rangeSlider_min}%`;
-document.querySelector('#RangeSlider .range-slider-val-range').style.right = `${(100 - rangeSlider_max)}%`;
+const slider = document.querySelector('#RangeSlider');
+const maxpriceinput = document.querySelector('#max-price-input');
+let maxPrice = slider.getAttribute('data-max-price');
 
-document.querySelector('#RangeSlider .range-slider-handle-left').style.left = `${rangeSlider_min}%`;
-document.querySelector('#RangeSlider .range-slider-handle-right').style.left = `${rangeSlider_max}%`;
+// Convert to float first (in case it has decimals), then to integer
+maxPrice = parseInt(parseFloat(maxPrice) + 100);
+maxpriceinput.value = maxPrice;
 
-document.querySelector('#RangeSlider .range-slider-tooltip-left').style.left = `${rangeSlider_min}%`;
-document.querySelector('#RangeSlider .range-slider-tooltip-right').style.left = `${rangeSlider_max}%`;
+console.log(maxPrice);
+const rangeSlider_max = maxPrice ; 
+const inputLeft = slider.querySelector('.range-slider-input-left');
+const inputRight = slider.querySelector('.range-slider-input-right');
 
-document.querySelector('#RangeSlider .range-slider-tooltip-left .range-slider-tooltip-text').innerText = rangeSlider_min;
-document.querySelector('#RangeSlider .range-slider-tooltip-right .range-slider-tooltip-text').innerText = rangeSlider_max;
+const handleLeft = slider.querySelector('.range-slider-handle-left');
+const handleRight = slider.querySelector('.range-slider-handle-right');
+const rangeBar = slider.querySelector('.range-slider-val-range');
 
-document.querySelector('#RangeSlider .range-slider-input-left').value = rangeSlider_min;
-document.querySelector('#RangeSlider .range-slider-input-left').addEventListener( 'input', e => {
-	e.target.value = Math.min(e.target.value, e.target.parentNode.childNodes[5].value - 1);
-	var value = (100 / ( parseInt(e.target.max) - parseInt(e.target.min) )) * parseInt(e.target.value) - (100 / (parseInt(e.target.max) - parseInt(e.target.min) )) * parseInt(e.target.min);
+const tooltipLeft = slider.querySelector('.range-slider-tooltip-left');
+const tooltipRight = slider.querySelector('.range-slider-tooltip-right');
+const tooltipLeftText = tooltipLeft.querySelector('.range-slider-tooltip-text');
+const tooltipRightText = tooltipRight.querySelector('.range-slider-tooltip-text');
 
-	var children = e.target.parentNode.childNodes[1].childNodes;
-	children[1].style.width = `${value}%`;
-	children[5].style.left = `${value}%`;
-	children[7].style.left = `${value}%`;
-	children[11].style.left = `${value}%`;
+inputLeft.min = rangeSlider_min;
+inputLeft.max = rangeSlider_max;
+inputLeft.value = rangeSlider_min;
 
-	children[11].childNodes[1].innerHTML = e.target.value;
+inputRight.min = rangeSlider_min;
+inputRight.max = rangeSlider_max;
+inputRight.value = rangeSlider_max;
+
+function updateSlider() {
+    // Calculate percentage positions
+    let minPercent = ((inputLeft.value - rangeSlider_min) / (rangeSlider_max - rangeSlider_min)) * 100;
+    let maxPercent = ((inputRight.value - rangeSlider_min) / (rangeSlider_max - rangeSlider_min)) * 100;
+
+    // Update handles
+    handleLeft.style.left = `${minPercent}%`;
+    handleRight.style.left = `${maxPercent}%`;
+
+    // Update range bar
+    rangeBar.style.left = `${minPercent}%`;
+    rangeBar.style.right = `${100 - maxPercent}%`;
+
+    // Update tooltips text
+    tooltipLeftText.innerText = inputLeft.value;
+    tooltipRightText.innerText = inputRight.value;
+
+    // Move tooltips to follow handles
+    tooltipLeft.style.left = `calc(${minPercent}% - ${tooltipLeft.offsetWidth / 2}px)`;
+    tooltipRight.style.left = `calc(${maxPercent}% - ${tooltipRight.offsetWidth / 2}px)`;
+}
+
+// Event listeners
+inputLeft.addEventListener('input', () => {
+    inputLeft.value = Math.min(inputLeft.value, inputRight.value - 1);
+    updateSlider();
 });
 
-document.querySelector('#RangeSlider .range-slider-input-right').value = rangeSlider_max;
-document.querySelector('#RangeSlider .range-slider-input-right').addEventListener( 'input', e => {
-	e.target.value = Math.max(e.target.value, e.target.parentNode.childNodes[3].value - (-1));
-	var value = (100 / ( parseInt(e.target.max) - parseInt(e.target.min) )) * parseInt(e.target.value) - (100 / ( parseInt(e.target.max) - parseInt(e.target.min) )) * parseInt(e.target.min);
-
-	var children = e.target.parentNode.childNodes[1].childNodes;
-	children[3].style.width = `${100-value}%`;
-	children[5].style.right = `${100-value}%`;
-	children[9].style.left = `${value}%`;
-	children[13].style.left = `${value}%`;
-
-	children[13].childNodes[1].innerHTML = e.target.value;
+inputRight.addEventListener('input', () => {
+    inputRight.value = Math.max(inputRight.value, parseInt(inputLeft.value) + 1);
+    updateSlider();
 });
+
+// Initialize
+updateSlider();
+
 document.addEventListener('input', function (event) {
   if (
     !event.target.classList.contains('price-range-min') &&

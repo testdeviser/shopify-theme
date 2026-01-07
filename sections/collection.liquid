@@ -33,12 +33,14 @@
 
          {% when 'price_range' %}
           
-  {% assign min_value = filter.min_value.value | default: filter.range_min %}
-  {% assign max_value = filter.max_value.value | default: filter.range_max %}
+{% assign min_value = filter.min_value.value | default: filter.range_min %}
+{% assign max_value = filter.max_value.value | default: filter.range_max %}
+{% assign all_prices = collection.products | map: 'price' %}
+{% assign max_price_cents = all_prices | sort | last %}
+ {% assign max_price = max_price_cents | divided_by: 100 %}
 
 
-
-<div id="RangeSlider" class="range-slider">
+<div id="RangeSlider" class="range-slider" data-max-price="{{ max_price }}">
 	<div>
 		<div class="range-slider-val-left"></div>
 		<div class="range-slider-val-right"></div>
@@ -58,21 +60,23 @@
 
 	<input type="range" class="range-slider-input-left price-range-min" tabindex="0" max="100" min="0" step="1">
 	<input type="range" class="range-slider-input-right price-range-max" tabindex="0" max="100" min="0" step="1">
+
+
+</div>
  <div class="price-range"
      data-min="{{ filter.range_min }}"
      data-max="{{ filter.range_max }}">
-
-  <input type="hidden"
+<div>
+  <input type="text"
          name="{{ filter.min_value.param_name }}"
          value="{{ min_value }}"
          class="price-min-input">
 
-  <input type="hidden"
+  <input type="text" id="max-price-input"
          name="{{ filter.max_value.param_name }}"
          value="{{ max_value }}"
          class="price-max-input">
-</div>
-
+         </div>
 </div>
  
           {% endcase %}
