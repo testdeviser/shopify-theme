@@ -73,3 +73,30 @@ document.getElementById('SortSelect')?.addEventListener('change', function() {
 
 window.addEventListener('popstate', () => location.reload());
  
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('collectionSearchInput');
+  const collectionsContainer = document.getElementById('CollectionSection');
+
+  if (!input || !collectionsContainer) return;
+
+  const collectionCards = Array.from(
+    collectionsContainer.querySelectorAll('.collection-card')
+  );
+
+  input.addEventListener('keyup', function () {
+    const searchValue = this.value.toLowerCase().trim();
+
+    collectionCards.forEach(card => {
+      const titleEl = card.querySelector('.collection-card__content p');
+      if (!titleEl) return;
+
+      const title = titleEl.textContent.toLowerCase();
+
+      if (title.includes(searchValue)) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  });
+});
