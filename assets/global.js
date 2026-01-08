@@ -12,6 +12,180 @@
   - A small amount of normalization is applied to `data-max-price` to
     convert from cents to an integer price for the UI.
 */
+(function () {
+  const container = document.getElementById('ActiveFilters');
+  if (!container) return;
+
+  // -------------------------
+  // ADD FILTER PILL
+  // -------------------------
+  function addFilterPill({ type, label, name, value }) {
+    // Prevent duplicates
+    if (
+      (type === 'price' && container.querySelector('[data-filter-type="price"]')) ||
+      container.querySelector(`[data-input-id="${name}"][data-input-value="${value}"]`)
+    ) {
+      return;
+    }
+
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    pill.className = 'active-filter';
+
+    if (type === 'price') {
+      pill.dataset.filterType = 'price';
+    } else {
+      pill.dataset.inputId = name;
+      pill.dataset.inputValue = value;
+    }
+
+    pill.innerHTML = `${label} <span class="active-filter-remove">×</span>`;
+    container.appendChild(pill);
+  }
+
+  // -------------------------
+  // REMOVE FILTER PILL
+  // -------------------------
+  function removeFilterPill(el) {
+    if (el) el.remove();
+  }
+
+  // -------------------------
+  // LISTEN: checkbox filters
+  // -------------------------
+  document.addEventListener('change', function (event) {
+    const input = event.target;
+
+    // Ignore non-filter inputs
+    if (!input.name || input.type !== 'checkbox') return;
+
+    if (input.checked) {
+      addFilterPill({
+        type: 'list',
+        label: input.closest('label')?.innerText.trim(),
+        name: input.name,
+        value: input.value
+      });
+    } else {
+      const pill = container.querySelector(
+        `[data-input-id="${input.name}"][data-input-value="${input.value}"]`
+      );
+      removeFilterPill(pill);
+    }
+  });
+
+  // -------------------------
+  // LISTEN: price filters
+  // -------------------------
+  function syncPricePill() {
+    const min = document.querySelector('.price-min-input')?.value;
+    const max = document.querySelector('.price-max-input')?.value;
+
+    const existing = container.querySelector('[data-filter-type="price"]');
+    if (existing) existing.remove();
+
+    if (!min && !max) return;
+
+    addFilterPill({
+      type: 'price',
+      label: `${min || 0} – ${max}`,
+    });
+  }
+
+  document.querySelectorAll('.price-min-input, .price-max-input').forEach(input => {
+    input.addEventListener('change', syncPricePill);
+  });
+
+  // -------------------------
+  // CLICK: remove pill
+  // -------------------------
+  container.addEventListener('click', function (event) {
+    const pill = event.target.closest('.active-filter');
+    if (!pill) return;
+
+    // Remove visually immediately
+    pill.remove();
+
+    // PRICE FILTER
+    if (pill.dataset.filterType === 'price') {
+      const minInput = document.querySelector('.price-min-input');
+      const maxInput = document.querySelector('.price-max-input');
+
+      minInput.value = '';
+      maxInput.value = '';
+
+      minInput.dispatchEvent(new Event('change', { bubbles: true }));
+      maxInput.dispatchEvent(new Event('change', { bubbles: true }));
+      return;
+    }
+
+    // NORMAL FILTER
+    const input = document.querySelector(
+      `input[name="${pill.dataset.inputId}"][value="${pill.dataset.inputValue}"]`
+    );
+
+    if (input) {
+      input.checked = false;
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  });
+
+})();
+
+(function () {
+  const container = document.getElementById('ActiveFilters');
+  const sortSelect = document.querySelector('select[name="sort_by"]');
+  if (!container || !sortSelect) return;
+
+  // -------------------------
+  // ADD / UPDATE SORT PILL
+  // -------------------------
+  function syncSortPill() {
+    const value = sortSelect.value;
+    const label = sortSelect.options[sortSelect.selectedIndex]?.text;
+
+    // Remove existing sort pill
+    const existing = container.querySelector('[data-filter-type="sort"]');
+    if (existing) existing.remove();
+
+    // Default sort → no pill
+    if (!value || value === 'manual') return;
+
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    pill.className = 'active-filter';
+    pill.dataset.filterType = 'sort';
+
+    pill.innerHTML = `${label} <span class="active-filter-remove">×</span>`;
+    container.appendChild(pill);
+  }
+
+  // -------------------------
+  // LISTEN SORT CHANGE
+  // -------------------------
+  sortSelect.addEventListener('change', syncSortPill);
+
+  // -------------------------
+  // REMOVE SORT ON CLICK
+  // -------------------------
+  container.addEventListener('click', function (event) {
+    const pill = event.target.closest('[data-filter-type="sort"]');
+    if (!pill) return;
+
+    pill.remove();
+
+    // Reset to default sorting
+    sortSelect.value = 'manual';
+    sortSelect.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+
+  // -------------------------
+  // INITIAL SYNC (page load)
+  // -------------------------
+  // syncSortPill();
+
+})();
+
 
 const rangeSlider_min = 0;
 
@@ -23,7 +197,9 @@ if (slider) {
 
   // Convert to float first (in case it has decimals), then to integer and
   // add a small buffer (non-invasive) so the UI has room to move.
-  maxPrice = parseInt(parseFloat(maxPrice) + 100);
+  maxPrice = parseInt(Math.ceil(parseFloat(maxPrice))+1,10);
+  // maxPrice = Math.ceil(parseFloat(maxPrice));
+
   if (maxpriceinput) maxpriceinput.value = maxPrice;
 
   console.log(maxPrice);

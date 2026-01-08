@@ -35,6 +35,45 @@
 >
   <h1>{{ collection.title }}</h1>
 
+{% if collection.filters.size > 0 %}
+  <div class="active-filters" id="ActiveFilters">
+    {% for filter in collection.filters %}
+      
+      {%- if filter.type == 'price_range' -%}
+        {%- if filter.min_value.value or filter.max_value.value -%}
+          <button
+            type="button"
+            class="active-filter"
+            data-filter-type="price"
+          >
+            {{ filter.min_value.value | default: filter.range_min | money }}
+            –
+            {{ filter.max_value.value | default: filter.range_max | money }}
+            <span class="active-filter-remove">×</span>
+          </button>
+        {%- endif -%}
+
+      {%- else -%}
+        {% for value in filter.active_values %}
+          <button
+            type="button"
+            class="active-filter"
+            data-input-id="{{ value.param_name | escape }}"
+            data-input-value="{{ value.value | escape }}"
+          >
+            {{ value.label }}
+            <span class="active-filter-remove">×</span>
+          </button>
+        {% endfor %}
+      {%- endif -%}
+
+    {% endfor %}
+    <div class="active-filters" id="ActiveFilters"></div>
+  </div>
+{% endif %}
+
+
+
   {% if collection.filters.size > 0 %}
     {%- comment -%} Filters form
         - Renders one fieldset per filter provided by Shopify.
