@@ -34,7 +34,7 @@
   data-section-id="{{ section.id }}"
 >
   <h1>{{ collection.title }}</h1>
-
+ <h3>Total products: {{ collection.products_count }}</h3>
 {% if collection.filters.size > 0 %}
   <div class="active-filters" id="ActiveFilters">
     {% for filter in collection.filters %}
@@ -161,9 +161,13 @@
           {% endcase %}
         </fieldset>
       {% endfor %}
+
         <!-- Sort select -->
     <select id="SortSelect" name="sort_by">
-      {% assign current_sort = request.params.sort_by | default: 'title-ascending' %}
+      {% assign current_sort = request.params.sort_by | default: 'manual' %}
+      <option value="manual" {% if current_sort == 'manual' %}selected{% endif %}>{{ 'collection.featured' | t }}</option>
+        
+      <option value="best-selling" {% if current_sort == 'best-selling' %}selected{% endif %}>{{ 'collection.best_seller' | t }}</option> 
       <option value="title-ascending" {% if current_sort == 'title-ascending' %}selected{% endif %}>{{ 'collection.title_ascending' | t }}</option>
       <option value="title-descending" {% if current_sort == 'title-descending' %}selected{% endif %}>{{ 'collection.title_descending' | t }}</option>
       <option value="price-ascending" {% if current_sort == 'price-ascending' %}selected{% endif %}>{{ 'collection.price_ascending' | t }}</option>
@@ -177,9 +181,10 @@
   <div id="SearchResults" class="ajax-search__results"></div>
 </form>
   {% endif %}
- 
+
+
   <div class="collection-products" id="ProductGridContainer">
-    {% paginate collection.products by 20 %}
+    {% paginate collection.products by 10 %}
       {% for product in collection.products %}
         <div class="collection-product">
           {% if product.featured_image %}

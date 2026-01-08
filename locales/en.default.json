@@ -32,7 +32,9 @@
   }, 
   "collection": {
     "title": "Collections",
+    "featured": "Featured",
     "title_ascending": "A → Z",
+    "best_seller": "Best Seller",
     "title_descending": "Z → A",
     "price_ascending": "Price: Low → High",
     "price_descending": "Price: High → Low",
