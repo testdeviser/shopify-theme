@@ -165,8 +165,9 @@
         <!-- Sort select -->
     <select id="SortSelect" name="sort_by">
       {% assign current_sort = request.params.sort_by | default: 'manual' %}
+      
       <option value="manual" {% if current_sort == 'manual' %}selected{% endif %}>{{ 'collection.featured' | t }}</option>
-        
+
       <option value="best-selling" {% if current_sort == 'best-selling' %}selected{% endif %}>{{ 'collection.best_seller' | t }}</option> 
       <option value="title-ascending" {% if current_sort == 'title-ascending' %}selected{% endif %}>{{ 'collection.title_ascending' | t }}</option>
       <option value="title-descending" {% if current_sort == 'title-descending' %}selected{% endif %}>{{ 'collection.title_descending' | t }}</option>
@@ -200,6 +201,7 @@
           <div class="collection-product__content">
             <p>{{ product.title | escape | link_to: product.url }}</p>
             <p>{{ product.price | money }}</p>
+                <button class="quick-preview-btn" data-handle="{{ product.handle }}">Preview</button> 
           </div>
         </div>
       {% endfor %}
@@ -207,9 +209,67 @@
       {{ paginate | default_pagination }}
     {% endpaginate %}
   </div>
+  <div id="QuickPreviewModal" style="display:none;">
+  <div class="quick-preview-overlay"></div>
+  <div class="quick-preview-content">
+    <button class="quick-preview-close">×</button>
+    <div class="quick-preview-body">
+      <!-- Product details will be injected here via JS -->
+    </div>
+  </div>
 </div>
 
+
+</div>
+ 
+
 {% stylesheet %}
+
+#QuickPreviewModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.quick-preview-overlay {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+}
+.quick-preview-content {
+  position: relative;
+  background: #fff;
+  padding: 20px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80%;
+  overflow-y: auto;
+  z-index: 10;
+  border-radius: 8px;
+}
+.quick-preview-close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 24px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+.quick-preview-body img {
+  max-width: 100%;
+  margin-bottom: 10px;
+}
+.quick-preview-body button.add-to-cart {
+  margin-top: 10px;
+}
+
   .collection-products {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));

@@ -278,6 +278,7 @@ updateSlider();
 
     let minVal = parseInt(minSlider.value, 10);
     let maxVal = parseInt(maxSlider.value, 10);
+   
 
     // Prevent overlap (Shopify-safe)
     if (minVal >= maxVal) {
@@ -293,10 +294,29 @@ updateSlider();
     // Update Shopify filter inputs so normal form submission works
     if (minInput) minInput.value = minVal;
     if (maxInput) maxInput.value = maxVal;
+     const containerActiveFilters = document.getElementById('ActiveFilters');
+if (!containerActiveFilters) return;
+
+let existingPriceFilter = containerActiveFilters.querySelector(
+  '.active-filter[data-filter-type="price"]'
+);
+
+if (!existingPriceFilter) {
+  containerActiveFilters.insertAdjacentHTML(
+    'beforeend',
+    `<button type="button" class="active-filter" data-filter-type="price">
+      ${minVal} – ${maxVal} <span class="active-filter-remove">×</span>
+    </button>`
+  );
+} else {
+  existingPriceFilter.innerHTML = `
+    ${minVal} – ${maxVal} <span class="active-filter-remove">×</span>
+  `;
+}
 
     // Trigger the same AJAX change as sliders by dispatching change events
-    if (minInput) minInput.dispatchEvent(new Event('change', { bubbles: true }));
-    if (maxInput) maxInput.dispatchEvent(new Event('change', { bubbles: true }));
+    // if (minInput) minInput.dispatchEvent(new Event('change', { bubbles: true }));
+    // if (maxInput) maxInput.dispatchEvent(new Event('change', { bubbles: true }));
   });
 
   // Initialize slider visuals if text inputs are changed directly

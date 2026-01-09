@@ -122,3 +122,94 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  const modal = document.getElementById('QuickPreviewModal');
+  const overlay = modal.querySelector('.quick-preview-overlay');
+  const closeBtn = modal.querySelector('.quick-preview-close');
+  const body = modal.querySelector('.quick-preview-body');
+
+  function openModal(content) {
+    body.innerHTML = content;
+    modal.style.display = 'flex';
+  }
+
+  function closeModal() {
+    modal.style.display = 'none';
+    body.innerHTML = '';
+  }
+
+  closeBtn.addEventListener('click', closeModal);
+  overlay.addEventListener('click', closeModal);
+
+  // Listen for all preview buttons
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.quick-preview-btn');
+    if (!btn) return;
+
+    const handle = btn.dataset.handle;
+
+    // Fetch product JSON
+    fetch(`/products/${handle}.js`)
+      .then(res => res.json())
+      .then(product => {
+        const images = product.images.map(img => `<img src="${img}" alt="${product.title}">`).join('');
+      const price = formatMoney(product.variants[0].price);
+
+
+        const content = `
+          <h2>${product.title}</h2>
+          <h5>${product.description ?? ''}</h5>
+          <div class="quick-preview-images">${images}</div>
+          <p>${price}</p>
+            <div class="quick-preview-qty">
+      <button type="button" class="qty-btn qty-minus">-</button>
+      <input type="number" class="qty-input" value="1" min="1">
+      <button type="button" class="qty-btn qty-plus">+</button>
+    </div> <button class="add-to-cart" data-variant-id="${product.variants[0].id}">Add to Cart</button> `;
+        openModal(content);
+      });
+  });
+function formatMoney(cents, currencySymbol = "$") {
+  if (!cents) return '';
+  return currencySymbol + (cents / 100).toFixed(2);
+}
+  // Add to cart from preview
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.add-to-cart');
+    if (!btn) return;
+
+    const variantId = btn.dataset.variantId;
+  const qtyInput = modal.querySelector('.qty-input');
+  const quantity = parseInt(qtyInput.value, 10) || 1;
+    fetch('/cart/add.js', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({id: variantId, quantity: quantity})
+    })
+    .then(res => res.json())
+    .then(data => {
+      // alert(`${data.title} added to cart!`);
+      closeModal();
+    })
+    .catch(err => console.error(err));
+  });
+});
+
+document.addEventListener('click', function (e) {
+  const minus = e.target.closest('.qty-minus');
+  const plus = e.target.closest('.qty-plus');
+
+  if (!minus && !plus) return;
+
+  const wrapper = e.target.closest('.quick-preview-qty');
+  const input = wrapper.querySelector('.qty-input');
+
+  let qty = parseInt(input.value, 10) || 1;
+
+  if (minus) qty = Math.max(1, qty - 1);
+  if (plus) qty = qty + 1;
+
+  input.value = qty;
+});
