@@ -11,6 +11,10 @@
   "sections": {
     "main": {
       "type": "hello-world",
+      "custom_css": [
+        "h1 {color: red;}"
+      ],
+      "name": "Hello World",
       "settings": {}
     }
   },
